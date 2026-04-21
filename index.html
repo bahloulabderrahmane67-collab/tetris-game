@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<link rel="manifest" href="manifest.json">
 <title>Tetris</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -146,11 +145,11 @@
   </div>
 </div>
 <div id="controls">
-  <button class="btn" style="grid-column:2;grid-row:1;" ontouchstart="rotatePiece()" onclick="rotatePiece()">↻</button>
-  <button class="btn" style="grid-column:1;grid-row:2;" ontouchstart="movePiece(-1)" onclick="movePiece(-1)">◀</button>
-  <button class="btn btn-drop" style="grid-column:2;grid-row:2;" ontouchstart="hardDrop()" onclick="hardDrop()">DROP</button>
-  <button class="btn" style="grid-column:3;grid-row:2;" ontouchstart="movePiece(1)" onclick="movePiece(1)">▶</button>
-  <button class="btn" style="grid-column:2;grid-row:3;" ontouchstart="softDrop()" onclick="softDrop()">▼</button>
+  <button class="btn" style="grid-column:2;grid-row:1;" id="btn-rotate">↻</button>
+  <button class="btn" style="grid-column:1;grid-row:2;" id="btn-left">◀</button>
+  <button class="btn btn-drop" style="grid-column:2;grid-row:2;" id="btn-drop">DROP</button>
+  <button class="btn" style="grid-column:3;grid-row:2;" id="btn-right">▶</button>
+  <button class="btn" style="grid-column:2;grid-row:3;" id="btn-down">▼</button>
 </div>
 
 <script>
@@ -169,7 +168,7 @@ const PIECES=[
   [[0,1,1],[1,1,0]],
   [[1,1,0],[0,1,1]]
 ];
-let board,piece,nextPiece,score,level,lines,gameLoop,running=false;
+let board,piece,nextPiece,score,level,lines,gameLoop,running=false,dropping=false,lastDrop=0;
 
 function newBoard(){return Array.from({length:ROWS},()=>Array(COLS).fill(0));}
 function randomPiece(){
@@ -182,7 +181,7 @@ function startGame(){
   board=newBoard();score=0;level=1;lines=0;
   piece=randomPiece();nextPiece=randomPiece();
   running=true;updateUI();clearInterval(gameLoop);
-  gameLoop=setInterval(tick,Math.max(100,600-level*50));
+  gameLoop=setInterval(tick,Math.max(150,800-level*60));
 }
 function tick(){
   if(!running)return;
@@ -213,10 +212,14 @@ function rotatePiece(){
 }
 function softDrop(){if(running){movePieceDown();draw();}}
 function hardDrop(){
-  if(!running)return;
+  if(!running||dropping)return;
+  dropping=true;
+  clearInterval(gameLoop);
   while(!collision(piece,0,1))piece.y++;
   placePiece();clearLines();piece=nextPiece;nextPiece=randomPiece();
-  if(collision(piece,0,0)){running=false;clearInterval(gameLoop);showGameOver();}
+  if(collision(piece,0,0)){running=false;dropping=false;showGameOver();return;}
+  dropping=false;
+  gameLoop=setInterval(tick,Math.max(150,800-level*60));
   draw();
 }
 function placePiece(){
@@ -233,7 +236,7 @@ function clearLines(){
   if(cleared){
     const pts=[0,100,300,500,800];
     score+=pts[cleared]*level;lines+=cleared;level=Math.floor(lines/10)+1;
-    clearInterval(gameLoop);gameLoop=setInterval(tick,Math.max(100,600-level*50));
+    clearInterval(gameLoop);gameLoop=setInterval(tick,Math.max(150,800-level*60));
     updateUI();
   }
 }
@@ -290,14 +293,38 @@ document.addEventListener('keydown',e=>{
   else if(e.key==='ArrowUp')rotatePiece();
   else if(e.key===' '){e.preventDefault();hardDrop();}
 });
-let touchX=null,touchY=null;
-canvas.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;touchY=e.touches[0].clientY;e.preventDefault();},{passive:false});
+
+// Button touch handlers - touchstart only, no onclick to avoid double trigger
+function addBtnTouch(id, fn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('touchstart', e => { e.preventDefault(); fn(); }, {passive:false});
+  el.addEventListener('click', fn);
+}
+addBtnTouch('btn-rotate', rotatePiece);
+addBtnTouch('btn-left', () => movePiece(-1));
+addBtnTouch('btn-right', () => movePiece(1));
+addBtnTouch('btn-down', softDrop);
+addBtnTouch('btn-drop', hardDrop);
+
+// Canvas swipe gestures
+let touchX=null,touchY=null,touchTime=0;
+canvas.addEventListener('touchstart',e=>{
+  touchX=e.touches[0].clientX;
+  touchY=e.touches[0].clientY;
+  touchTime=Date.now();
+  e.preventDefault();
+},{passive:false});
 canvas.addEventListener('touchend',e=>{
   if(touchX===null||!running)return;
   const dx=e.changedTouches[0].clientX-touchX;
   const dy=e.changedTouches[0].clientY-touchY;
-  if(Math.abs(dy)>Math.abs(dx)){if(dy>30)hardDrop();}
-  else{if(Math.abs(dx)<10)rotatePiece();else if(dx>20)movePiece(1);else if(dx<-20)movePiece(-1);}
+  const dt=Date.now()-touchTime;
+  if(Math.abs(dy)>Math.abs(dx)&&dy>40&&dt<400){hardDrop();}
+  else if(Math.abs(dx)>Math.abs(dy)){
+    if(dx>30)movePiece(1);
+    else if(dx<-30)movePiece(-1);
+  } else if(Math.abs(dx)<15&&Math.abs(dy)<15&&dt<200){rotatePiece();}
   touchX=null;touchY=null;
 },{passive:false});
 </script>
