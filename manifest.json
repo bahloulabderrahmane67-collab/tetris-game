@@ -1,8 +1,8 @@
 {
-  "name": "Tetris Classic",
-  "short_name": "Tetris",
-  "description": "Le jeu Tetris classique sur mobile",
-  "start_url": "/tetris-game/",
+  "name": "Classic Blocks",
+  "short_name": "Blocks",
+  "description": "Empilez les blocs, complétez des lignes et battez votre meilleur score.",
+  "start_url": "/classic-blocks/",
   "display": "fullscreen",
   "orientation": "portrait",
   "background_color": "#0a0a1a",
