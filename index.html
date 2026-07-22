@@ -1,11 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-  <link rel="manifest" href="manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <link rel="icon" href="icon-192.png" type="image/png">
-<title>Classic Blocks</title>
+<link rel="manifest" href="manifest.json">
+<title>Tetris</title>
 <style>
 :root {
   --bg: #f5f0e8;
@@ -71,9 +71,9 @@ body {
   margin-bottom: 8px;
 }
 .logo {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 900;
-  letter-spacing: 2px;
+  letter-spacing: 4px;
   color: var(--logo);
   text-shadow: none;
 }
@@ -167,7 +167,7 @@ body {
   border-radius: 4px;
   gap: 10px;
 }
-.overlay-title { font-size: 20px; font-weight: 900; color: #fff; letter-spacing: 2px; }
+.overlay-title { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: 3px; }
 .overlay-score { font-size: 13px; color: #9b95a8; letter-spacing: 1px; }
 .overlay-best { font-size: 12px; color: #ffd93d; }
 .start-btn {
@@ -315,7 +315,7 @@ body {
 </head>
 <body>
 <div id="header">
-  <div class="logo">CLASSIC BLOCKS</div>
+  <div class="logo">TETRIS</div>
   <div class="header-right">
     <div class="score-box">
       <div class="score-label">Score</div>
@@ -330,7 +330,7 @@ body {
   <div id="canvas-wrapper">
     <canvas id="canvas" width="220" height="440"></canvas>
     <div id="overlay">
-      <div class="overlay-title">CLASSIC BLOCKS</div>
+      <div class="overlay-title">TETRIS</div>
       <div class="overlay-score">APPUIE POUR JOUER</div>
       <div class="overlay-best" id="overlay-best"></div>
       <button class="start-btn" onclick="startGame()">JOUER</button>
@@ -425,8 +425,8 @@ const PIECES=[
 ];
 
 let board,piece,nextPiece,score,level,lines,gameLoop,running=false,dropping=false,paused=false;
-let bestScore = parseInt(localStorage.getItem('classic_blocks_best')||'0');
-let darkMode = localStorage.getItem('classic_blocks_dark')==='true';
+let bestScore = parseInt(localStorage.getItem('tetris_best')||'0');
+let darkMode = localStorage.getItem('tetris_dark')==='true';
 let flashRows = [];
 
 // Init theme
@@ -488,7 +488,7 @@ function tick(){
     piece=nextPiece; nextPiece=randomPiece();
     if(collision(piece,0,0)){
       running=false; clearInterval(gameLoop);
-      if(score>bestScore){ bestScore=score; localStorage.setItem('classic_blocks_best',bestScore); }
+      if(score>bestScore){ bestScore=score; localStorage.setItem('tetris_best',bestScore); }
       showGameOver();
     }
   }
@@ -529,7 +529,7 @@ function hardDrop(){
   piece=nextPiece; nextPiece=randomPiece();
   if(collision(piece,0,0)){
     running=false; dropping=false;
-    if(score>bestScore){ bestScore=score; localStorage.setItem('classic_blocks_best',bestScore); }
+    if(score>bestScore){ bestScore=score; localStorage.setItem('tetris_best',bestScore); }
     showGameOver(); return;
   }
   dropping=false;
@@ -648,7 +648,7 @@ function showGameOver(){
   const best=Math.max(score,bestScore);
   document.getElementById('best-disp').textContent=best;
   document.getElementById('best-score-settings').textContent=best+' pts';
-  localStorage.setItem('classic_blocks_best',best);
+  localStorage.setItem('tetris_best',best);
   ov.innerHTML=`
     <div class="overlay-title" style="color:#ff6b6b">GAME OVER</div>
     <div class="overlay-score">Score: ${score}</div>
@@ -661,7 +661,7 @@ function showGameOver(){
 
 function toggleTheme(){
   darkMode=!darkMode;
-  localStorage.setItem('classic_blocks_dark',darkMode);
+  localStorage.setItem('tetris_dark',darkMode);
   document.body.setAttribute('data-theme', darkMode?'dark':'');
   if(!darkMode) document.body.removeAttribute('data-theme');
   const t=document.getElementById('theme-toggle');
@@ -680,7 +680,7 @@ function closeSettings(){
 
 function resetBest(){
   bestScore=0;
-  localStorage.setItem('classic_blocks_best','0');
+  localStorage.setItem('tetris_best','0');
   document.getElementById('best-disp').textContent='0';
   document.getElementById('best-score-settings').textContent='0 pts';
 }
