@@ -306,7 +306,14 @@ const PIECES=[
 ];
 
 let board,piece,nextPiece,score,level,lines,gameLoop,running=false,dropping=false,paused=false;
-let bestScore = parseInt(localStorage.getItem('tetris_best')||'0');
+/* Certains WebView refusent localStorage (stockage desactive, mode restreint).
+   Un acces direct y leve une exception qui tuait tout le script : le jeu
+   s'affichait mais ne repondait plus. Tout passe desormais par ces helpers. */
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v===null ? d : v; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, String(v)); } catch(e){} }
+};
+let bestScore = parseInt(store.get('tetris_best','0'), 10) || 0;
 const darkMode = true;
 let flashRows = [];
 
@@ -365,7 +372,7 @@ function tick(){
     piece=nextPiece; nextPiece=randomPiece();
     if(collision(piece,0,0)){
       running=false; clearInterval(gameLoop);
-      if(score>bestScore){ bestScore=score; localStorage.setItem('tetris_best',bestScore); }
+      if(score>bestScore){ bestScore=score; store.set('tetris_best',bestScore); }
       showGameOver();
     }
   }
@@ -406,7 +413,7 @@ function hardDrop(){
   piece=nextPiece; nextPiece=randomPiece();
   if(collision(piece,0,0)){
     running=false; dropping=false;
-    if(score>bestScore){ bestScore=score; localStorage.setItem('tetris_best',bestScore); }
+    if(score>bestScore){ bestScore=score; store.set('tetris_best',bestScore); }
     showGameOver(); return;
   }
   dropping=false;
@@ -521,7 +528,7 @@ function drawNext(){
 function showGameOver(){
   const ov=document.getElementById('overlay');
   const best=Math.max(score,bestScore);
-  localStorage.setItem('tetris_best',best);
+  store.set('tetris_best',best);
   bestScore=best;
   updateUI();
   const record = score>0 && score>=best;
@@ -547,7 +554,7 @@ function closeSettings(){
 
 function resetBest(){
   bestScore=0;
-  localStorage.setItem('tetris_best','0');
+  store.set('tetris_best','0');
   document.getElementById('best-disp').textContent='0';
   document.getElementById('best-score-settings').textContent='0 pts';
 }
@@ -628,10 +635,10 @@ function openRateStore(){
 
 /* Demande d'avis : une fois après la 1re partie, puis espacée, 3 fois maximum. */
 function rateState(){
-  try { return JSON.parse(localStorage.getItem('cb_rate')) || {games:0,asks:0,nextAt:1,notBefore:0,done:false}; }
+  try { return JSON.parse(store.get('cb_rate','')) || {games:0,asks:0,nextAt:1,notBefore:0,done:false}; }
   catch(e){ return {games:0,asks:0,nextAt:1,notBefore:0,done:false}; }
 }
-function saveRate(st){ try{ localStorage.setItem('cb_rate', JSON.stringify(st)); }catch(e){} }
+function saveRate(st){ store.set('cb_rate', JSON.stringify(st)); }
 
 function maybeAskRating(){
   const st=rateState();
@@ -665,10 +672,18 @@ document.getElementById('rate-panel').addEventListener('click', e=>{
 document.getElementById('games-btn').addEventListener('click', openMoreGames);
 document.getElementById('rate-btn').addEventListener('click', openRateStore);
 
-setPauseIcon(false);
-layout();
-window.addEventListener('resize', layout);
-window.addEventListener('orientationchange', ()=>setTimeout(layout,200));
+/* Aucune etape de demarrage ne doit pouvoir bloquer le jeu. */
+try { setPauseIcon(false); } catch(e){}
+try { layout(); } catch(e){ try{ draw(); }catch(e2){} }
+window.addEventListener('resize', ()=>{ try{ layout(); }catch(e){} });
+window.addEventListener('orientationchange', ()=>setTimeout(()=>{ try{ layout(); }catch(e){} },200));
+
+/* Le jeu fonctionne hors ligne une fois installe. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
