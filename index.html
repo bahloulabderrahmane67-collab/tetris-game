@@ -161,6 +161,38 @@ body>*:not(.decor){position:relative;z-index:1}
   text-shadow:0 2px 3px rgba(0,0,0,.4);cursor:pointer}
 .rate-yes:active{background-image:url('assets/panneaux/bouton-poser-enfonce.png');transform:translateY(3px)}
 .rate-no{margin-top:12px;background:none;border:none;color:var(--ink2);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:6px}
+
+/* ===== promotion maison : Snake Classic ===== */
+#promo{display:none;position:fixed;inset:0;z-index:300;background:rgba(6,12,40,.8);
+  align-items:center;justify-content:center;padding:20px}
+#promo.open{display:flex}
+.promo-card{position:relative;width:100%;max-width:330px;background:#1d2a63;
+  border-radius:22px;overflow:hidden;animation:rise .24s ease;
+  box-shadow:0 22px 56px rgba(0,0,0,.55)}
+.promo-shot{display:block;width:100%;aspect-ratio:620/399;object-fit:cover;background:#2c4a2e}
+.promo-deal{position:absolute;top:12px;left:12px;background:#E8452F;color:#fff;
+  font-size:13px;font-weight:700;letter-spacing:.3px;padding:6px 12px;border-radius:11px;
+  box-shadow:0 4px 12px rgba(0,0,0,.4)}
+.promo-x{position:absolute;top:10px;right:10px;width:38px;height:38px;border:none;
+  border-radius:50%;background:rgba(10,16,44,.72);color:#fff;font:inherit;font-size:19px;
+  font-weight:600;line-height:1;cursor:pointer;display:grid;place-items:center;
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.promo-x:active{transform:scale(.9)}
+.promo-body{padding:16px 20px 20px;text-align:center}
+.promo-body h3{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.2px}
+.promo-body p{font-size:13px;font-weight:500;color:#9db4ee;line-height:1.45;margin:6px 0 14px}
+.promo-price{display:flex;align-items:baseline;justify-content:center;gap:9px;margin-bottom:14px}
+.promo-old{font-size:15px;font-weight:600;color:#7f8bb5;text-decoration:line-through}
+.promo-new{font-size:30px;font-weight:700;color:#FFC53D;line-height:1;
+  text-shadow:0 2px 0 rgba(10,20,70,.4)}
+.promo-go{width:100%;padding:15px;border:none;border-radius:15px;cursor:pointer;
+  font-family:'Fredoka',sans-serif;font-size:15px;font-weight:700;letter-spacing:.3px;color:#fff;
+  background:linear-gradient(180deg,#BAE3A7 0%,#90D276 18%,#54B735 46%,#45AA33 70%,#339932 100%);
+  box-shadow:0 5px 0 #2a7d26, 0 8px 14px rgba(5,12,45,.4);
+  text-shadow:0 2px 2px rgba(10,60,10,.45);transition:transform .08s ease, box-shadow .08s ease}
+.promo-go:active{transform:translateY(4px);box-shadow:0 1px 0 #2a7d26, 0 2px 6px rgba(5,12,45,.4)}
+.promo-skip{margin-top:10px;background:none;border:none;color:#7f8bb5;font:inherit;
+  font-size:12.5px;font-weight:600;cursor:pointer;padding:7px}
 </style>
 </head>
 <body>
@@ -240,6 +272,24 @@ body>*:not(.decor){position:relative;z-index:1}
     <p>Une note sur le Play Store prend dix secondes et aide beaucoup le jeu à se faire connaître.</p>
     <button class="rate-yes" onclick="rateNow()">NOTER MAINTENANT</button>
     <button class="rate-no" onclick="rateLater()">Pas maintenant</button>
+  </div>
+</div>
+
+<div id="promo" role="dialog" aria-label="Snake Classic">
+  <div class="promo-card">
+    <img class="promo-shot" src="assets/promo/snake.jpg" alt="Snake Classic" loading="lazy">
+    <div class="promo-deal">-52%</div>
+    <button class="promo-x" onclick="closePromo()" aria-label="Close">&#10005;</button>
+    <div class="promo-body">
+      <h3>Snake Classic</h3>
+      <p>Eat, grow, and don't bite your tail. The classic snake, beautifully remade.</p>
+      <div class="promo-price">
+        <span class="promo-old">$1.16</span>
+        <span class="promo-new">$0.56</span>
+      </div>
+      <button class="promo-go" onclick="openPromo()">GET IT ON GOOGLE PLAY</button>
+      <button class="promo-skip" onclick="closePromo()">No thanks</button>
+    </div>
   </div>
 </div>
 
@@ -541,6 +591,7 @@ function showGameOver(){
   `;
   ov.style.display='flex';
   setTimeout(maybeAskRating, 1100);
+  promoFinDePartie();
 }
 
 function openSettings(){
@@ -618,6 +669,42 @@ canvas.addEventListener('touchend',e=>{
   touchX=null;touchY=null;
 },{passive:false});
 
+/* ====== promotion maison : Snake Classic ====== */
+const SNAKE_URL = 'https://play.google.com/store/apps/details?id=com.houwa.snakeclassic';
+let promoVisible = false;
+
+function showPromo(){
+  if (promoVisible) return;
+  if (document.getElementById('rate-panel').classList.contains('open')) return;
+  promoVisible = true;
+  document.getElementById('promo').classList.add('open');
+}
+function closePromo(){
+  promoVisible = false;
+  document.getElementById('promo').classList.remove('open');
+}
+function openPromo(){
+  store.set('cb_promo_clic','1');       // ne plus la montrer apres un clic
+  closePromo();
+  window.open(SNAKE_URL, '_blank');
+}
+document.getElementById('promo').addEventListener('click', e=>{
+  if (e.target.id === 'promo') closePromo();   // un clic a cote ferme aussi
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && promoVisible) closePromo(); });
+
+/* Une fois a l'ouverture du jeu, puis une fin de partie sur deux. */
+function promoAuDemarrage(){
+  if (store.get('cb_promo_clic','') === '1') return;
+  setTimeout(showPromo, 900);           // le jeu s'affiche d'abord
+}
+function promoFinDePartie(){
+  if (store.get('cb_promo_clic','') === '1') return;
+  const n = (parseInt(store.get('cb_promo_n','0'), 10) || 0) + 1;
+  store.set('cb_promo_n', n);
+  if (n % 2 === 0) setTimeout(showPromo, 1400);   // apres la demande d'avis
+}
+
 /* ====== en-tête, notation et mise en page ====== */
 const STORE_URL = 'https://play.google.com/store/apps/details?id=com.bahloulabderrahmane67.tetris';
 
@@ -677,6 +764,8 @@ try { setPauseIcon(false); } catch(e){}
 try { layout(); } catch(e){ try{ draw(); }catch(e2){} }
 window.addEventListener('resize', ()=>{ try{ layout(); }catch(e){} });
 window.addEventListener('orientationchange', ()=>setTimeout(()=>{ try{ layout(); }catch(e){} },200));
+
+try { promoAuDemarrage(); } catch(e){}
 
 /* Le jeu fonctionne hors ligne une fois installe. */
 if ('serviceWorker' in navigator) {

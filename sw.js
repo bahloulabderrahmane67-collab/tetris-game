@@ -1,7 +1,7 @@
 /* Service worker : le jeu reste jouable sans reseau une fois installe.
    Le document passe par le reseau en priorite pour que les mises a jour
    arrivent vite ; les images et polices sont servies depuis le cache. */
-const CACHE = 'classic-blocks-v3';
+const CACHE = 'classic-blocks-v4';
 const FICHIERS = [
   "./",
   "index.html",
@@ -34,7 +34,8 @@ const FICHIERS = [
   "assets/touches/touche-rotation.png",
   "assets/fonts/fredoka-500.woff2",
   "assets/fonts/fredoka-600.woff2",
-  "assets/fonts/fredoka-700.woff2"
+  "assets/fonts/fredoka-700.woff2",
+  "assets/promo/snake.jpg"
 ];
 
 self.addEventListener('install', e => {
