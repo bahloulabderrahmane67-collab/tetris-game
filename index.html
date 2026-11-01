@@ -678,10 +678,13 @@ canvas.addEventListener('touchend',e=>{
    Snake Classic > Monetisation > Prix de l'application payante.
    Pour ajouter un pays, copier son prix exact depuis cette page. */
 const PRIX = {
-  EUR: { avant: 1.19, maintenant: 0.59 }
-  // USD: { avant: 1.29, maintenant: 0.69 },   <- a completer
+  EUR: { avant: 1.19, maintenant: 0.59 },   // verifie
+  USD: { avant: 1.29, maintenant: 0.69 }    // equivalent standard Google, a confirmer
   // GBP: { avant: 0.99, maintenant: 0.49 },
 };
+
+/* Devise de repli pour tout pays dont le prix n'est pas encore renseigne. */
+const DEVISE_DEFAUT = 'USD';
 
 const DEVISE_PAR_PAYS = {
   FR:'EUR', DE:'EUR', ES:'EUR', IT:'EUR', BE:'EUR', NL:'EUR', PT:'EUR', AT:'EUR',
@@ -716,13 +719,15 @@ function formatePrix(valeur, devise){
    seulement la remise, qui est vraie partout. */
 function afficherPrix(){
   const devise = DEVISE_PAR_PAYS[paysDuTelephone()];
-  const t = PRIX[devise];
+  // le pays a un prix connu, sinon on retombe sur le dollar
+  const dev = PRIX[devise] ? devise : DEVISE_DEFAUT;
+  const t = PRIX[dev];
   const elAvant = document.getElementById('promo-old');
   const elApres = document.getElementById('promo-new');
   const elDeal  = document.getElementById('promo-deal');
   if (t) {
-    elAvant.textContent = formatePrix(t.avant, devise);
-    elApres.textContent = formatePrix(t.maintenant, devise);
+    elAvant.textContent = formatePrix(t.avant, dev);
+    elApres.textContent = formatePrix(t.maintenant, dev);
     elApres.style.fontSize = '';
     elDeal.textContent = '-' + Math.round((1 - t.maintenant / t.avant) * 100) + '%';
   } else {
