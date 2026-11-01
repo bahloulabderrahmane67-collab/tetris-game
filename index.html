@@ -670,7 +670,11 @@ canvas.addEventListener('touchend',e=>{
 },{passive:false});
 
 /* ====== promotion maison : Snake Classic ====== */
-const SNAKE_URL = 'https://play.google.com/store/apps/details?id=com.houwa.snakeclassic';
+/* Le parametre referrer permet de voir dans la Play Console combien
+   d'installations de Snake viennent de cette promotion
+   (Acquisition d'utilisateurs > Sources de trafic). */
+const SNAKE_URL = 'https://play.google.com/store/apps/details?id=com.houwa.snakeclassic'
+  + '&referrer=' + encodeURIComponent('utm_source=classicblocks&utm_medium=crosspromo&utm_campaign=snake_promo52');
 let promoVisible = false;
 
 function showPromo(){
